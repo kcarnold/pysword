@@ -79,7 +79,6 @@ class ZModule(object):
         '''Get the text for a given reference'''
         chapter, verse = int(chapter), int(verse)
         testament, idx = ref_to_index(book, chapter, verse)
-        print idx
         return self.text_for_index(testament, idx)
     
 def find_book(name):
@@ -114,8 +113,13 @@ class Book(object):
         return name in [self.name.lower(), self.osis_name.lower(), self.preferred_abbreviation.lower()]
 
     def get_index_for_ref(self, chapter, verse):
+        # FIXME: it seems that it should be 'verse - 1', but that isn't right.
+        # Maybe I missed something about the offset calculation.
         return self.offset + self.chapter_offsets[chapter-1] + verse
 
+
+# This data came from canon.h in the SWORD repository. Code to transform it to
+# this form can be found in the repository history.
 testaments = {
 'ot': [
 Book('Genesis', 'Gen', 'Gen', [31, 25, 24, 26, 32, 22, 24, 22, 29, 32, 32, 20, 18, 24, 21, 16, 27, 33, 38, 18, 34, 24, 20, 67, 34, 35, 46, 22, 35, 43, 55, 32, 20, 31, 29, 43, 36, 30, 23, 23, 57, 38, 34, 34, 28, 34, 31, 22, 33, 26]),
@@ -190,6 +194,7 @@ Book('Revelation of John', 'Rev', 'Rev', [20, 29, 22, 11, 14, 17, 17, 13, 21, 11
 }
 
 # Compute index offsets
+# FIXME: this is still a little hairy.
 for testament, books in testaments.iteritems():
     idx = 1 # start after the testament heading
     for book in books:
