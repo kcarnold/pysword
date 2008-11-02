@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# A native Python implementation of the SWORD Project Bible Reader
+# Currently only ztext Bible modules are implemented.
+
 # * ztext format documentation
 # I'll use Python's struct module's format strings.
 # See http://docs.python.org/lib/module-struct.html
@@ -213,6 +216,5 @@ if __name__=='__main__':
    
     module = ZModule(mod_name)
     print module.text_for_ref(book, chapter, verse)
-    #print ref_to_index('Genesis', 1, 1)
     
     
