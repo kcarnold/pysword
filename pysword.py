@@ -52,7 +52,7 @@ class ZModule(object):
                                          for code in ('v', 's', 'z')]
         return [open(name, 'rb') for name in (v2b_name, b2l_name, text_name)]
 
-    def text(self, testament, index):
+    def text_for_index(self, testament, index):
         '''Get the text for a given index.'''
         verse_to_buf, buf_to_loc, text = self.files[testament]
 
@@ -75,13 +75,19 @@ class ZModule(object):
         compressed_data = text.read(size)
         return zlib.decompress(compressed_data)
 
-
-def find_book(book):
-    book = book.lower()
-    for testament, contents in books.iteritems():
-        for num, (name, osis, pref_abbr, num_chapters) in enumerate(contents):
-            if book in [name.lower(), osis.lower(), pref_abbr.lower()]:
-                return testament, num, num_chapters
+    def text_for_ref(self, book, chapter, verse):
+        '''Get the text for a given reference'''
+        chapter, verse = int(chapter), int(verse)
+        testament, idx = ref_to_index(book, chapter, verse)
+        print idx
+        return self.text_for_index(testament, idx)
+    
+def find_book(name):
+    name = name.lower()
+    for testament, books in testaments.iteritems():
+        for num, book in enumerate(books):
+            if book.name_matches(name):
+                return testament, book
     return None
 
 def ref_to_index(book, chapter, verse):
@@ -91,7 +97,8 @@ def ref_to_index(book, chapter, verse):
     book: a full name of a book
     chapter, verse: 1-based numbers.
     '''
-    testament, book_num, num_chapters = find_book(book)
+    testament, book = find_book(book)
+    return testament, book.get_index_for_ref(chapter, verse)
     
 
 class Book(object):
@@ -102,6 +109,12 @@ class Book(object):
         self.chapter_lengths = chapter_lengths
         self.num_chapters = len(chapter_lengths)
 
+    def name_matches(self, name):
+        name = name.lower()
+        return name in [self.name.lower(), self.osis_name.lower(), self.preferred_abbreviation.lower()]
+
+    def get_index_for_ref(self, chapter, verse):
+        return self.offset + self.chapter_offsets[chapter-1] + verse
 
 testaments = {
 'ot': [
@@ -176,12 +189,25 @@ Book('Revelation of John', 'Rev', 'Rev', [20, 29, 22, 11, 14, 17, 17, 13, 21, 11
 ],
 }
 
+# Compute index offsets
+for testament, books in testaments.iteritems():
+    idx = 1 # start after the testament heading
+    for book in books:
+        book.offset = idx
+        offset = 1 # start after the book heading
+        book.chapter_offsets = []
+        for chapter_len in book.chapter_lengths:
+            offset += 1 # skip the chapter heading
+            book.chapter_offsets.append(offset)
+            offset += chapter_len
+        idx += offset
+
 if __name__=='__main__':
     import sys
-    mod_name = sys.argv[1]
-    testament = sys.argv[2]
-    index = int(sys.argv[3])
+    mod_name, book, chapter, verse = sys.argv[1:]
    
     module = ZModule(mod_name)
-    print module.text(testament, index)
+    print module.text_for_ref(book, chapter, verse)
+    #print ref_to_index('Genesis', 1, 1)
+    
     
