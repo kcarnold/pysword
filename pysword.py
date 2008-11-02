@@ -26,7 +26,7 @@
 #  NT is analogous.
 #
 # Example usage:
-#  python pysword.py esv ot 1
+#  python pysword.py esv 1pet 2 9
 
 import os
 modules_path = os.environ["HOME"]+"/.sword/modules/texts/ztext"
