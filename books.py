@@ -3,7 +3,7 @@ def find_book(name):
     for testament, books in testaments.iteritems():
         for num, book in enumerate(books):
             if book.name_matches(name):
-                return testament, book
+                return book
     return None
 
 def ref_to_index(book, chapter, verse):
@@ -13,8 +13,8 @@ def ref_to_index(book, chapter, verse):
     book: a full name of a book
     chapter, verse: 1-based numbers.
     '''
-    testament, book = find_book(book)
-    return testament, book.get_index_for_ref(chapter, verse)
+    book = find_book(book)
+    return book.testament, book.get_index_for_ref(chapter, verse)
     
 
 
@@ -26,6 +26,8 @@ class Book(object):
         self.chapter_lengths = chapter_lengths
         self.num_chapters = len(chapter_lengths)
 
+    def __repr__(self): return u'Book(%s)' % self.name
+    
     def name_matches(self, name):
         name = name.lower()
         return name in [self.name.lower(), self.osis_name.lower(), self.preferred_abbreviation.lower()]
@@ -111,11 +113,12 @@ Book('Revelation of John', 'Rev', 'Rev', [20, 29, 22, 11, 14, 17, 17, 13, 21, 11
 ],
 }
 
-# Compute index offsets
+# Compute index offsets and add other data
 # FIXME: this is still a little hairy.
 for testament, books in testaments.iteritems():
     idx = 1 # start after the testament heading
     for book in books:
+        book.testament = testament
         book.offset = idx
         offset = 1 # start after the book heading
         book.chapter_offsets = []

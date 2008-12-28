@@ -33,7 +33,7 @@
 
 import os
 modules_path = os.environ["HOME"]+"/.sword/modules/texts/ztext"
-from books import ref_to_index
+from books import ref_to_index, testaments, find_book, Book
 
 import struct, zlib
 from os.path import join as path_join
@@ -84,6 +84,22 @@ class ZModule(object):
         testament, idx = ref_to_index(book, chapter, verse)
         return self.text_for_index(testament, idx)
 
+    def all_verses_in_testament(self, testament):
+        books = testaments[testament]
+        for book in books:
+            for verse in self.all_verses_in_book(book):
+                yield verse
+
+    def all_verses_in_book(self, book):
+        if not isinstance(book, Book): book = find_book(book)
+        for chapter, verses in enumerate(book.chapter_lengths):
+            chapter = chapter + 1
+            for verse in range(verses):
+                verse = verse+1
+                yield (book, chapter, verse,
+                       self.text_for_index(book.testament,
+                                           book.get_index_for_ref(chapter, verse)))
+        
 
 if __name__=='__main__':
     import sys
